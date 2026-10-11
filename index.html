@@ -328,6 +328,7 @@
   .account-avatar img {
     width: 100%; height: 100%;
     object-fit: cover;
+    display: block;
   }
 
   .account-name {
@@ -485,8 +486,8 @@
       <div class="account-avatar-wrap">
         <div class="account-avatar" id="userAvatar">?</div>
       </div>
-      <div class="account-name" id="userName">Пользователь</div>
-      <div class="account-username" id="userUsername">@username</div>
+      <div class="account-name" id="userName">Загрузка...</div>
+      <div class="account-username" id="userUsername"></div>
     </div>
 
     <div class="account-list">
@@ -544,43 +545,63 @@
 </nav>
 
 <script>
-  // ===== Init Telegram WebApp =====
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.ready();
-    tg.expand();
-    // Подстраиваемся под тему Telegram
-    if (tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
-    if (tg.setBackgroundColor) tg.setBackgroundColor('bg_color');
-    if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+  // ==================== Утилиты ====================
+
+  // Ждём, пока Telegram.WebApp появится в window (SDK грузится асинхронно)
+  function waitForTelegram(timeout = 3000) {
+    return new Promise(resolve => {
+      if (window.Telegram?.WebApp) return resolve(window.Telegram.WebApp);
+      const start = Date.now();
+      const tick = () => {
+        if (window.Telegram?.WebApp) return resolve(window.Telegram.WebApp);
+        if (Date.now() - start >= timeout) return resolve(null);
+        setTimeout(tick, 40);
+      };
+      tick();
+    });
   }
 
-  // ===== Данные пользователя =====
-  function loadUser() {
-    const user = tg?.initDataUnsafe?.user;
-
-    const avatarEl = document.getElementById('userAvatar');
-    const nameEl = document.getElementById('userName');
-    const usernameEl = document.getElementById('userUsername');
-
-    if (user) {
-      nameEl.textContent = [user.first_name, user.last_name].filter(Boolean).join(' ');
-      usernameEl.textContent = user.username ? '@' + user.username : 'ID: ' + user.id;
-
-      if (user.photo_url) {
-        avatarEl.innerHTML = `<img src="${user.photo_url}" alt="" onerror="this.parentElement.textContent='${(user.first_name||'?')[0].toUpperCase()}'">`;
-      } else {
-        avatarEl.textContent = (user.first_name || '?')[0].toUpperCase();
+  // Парсим initData вручную (на случай, если initDataUnsafe пустой)
+  function parseInitData(initData) {
+    try {
+      if (!initData) return {};
+      const params = new URLSearchParams(initData);
+      const out = {};
+      for (const [k, v] of params.entries()) {
+        if (k === 'user' || k === 'chat' || k === 'receiver') {
+          try { out[k] = JSON.parse(v); } catch { out[k] = v; }
+        } else out[k] = v;
       }
-    } else {
-      // Fallback для теста вне Telegram
-      avatarEl.textContent = 'S';
-      nameEl.textContent = 'Seily User';
-      usernameEl.textContent = '@seily';
-    }
+      return out;
+    } catch { return {}; }
   }
 
-  // ===== Персонажи (демо) =====
+  // Единая точка получения юзера
+  function getTelegramUser(tg) {
+    if (!tg) return null;
+    if (tg.initDataUnsafe?.user) return tg.initDataUnsafe.user;
+    const parsed = parseInitData(tg.initData);
+    if (parsed.user) return parsed.user;
+    return null;
+  }
+
+  // ==================== Состояние ====================
+
+  const state = {
+    tg: null,
+    user: null,
+    isTelegram: false,
+    demoUser: {
+      first_name: 'Seily',
+      last_name: 'User',
+      username: 'seily',
+      id: 0,
+      photo_url: null
+    }
+  };
+
+  // ==================== Данные персонажей ====================
+
   const popularChars = [
     { emoji: '🤖', name: 'Aiko', desc: 'Дружелюбный AI-помощник на все случаи жизни' },
     { emoji: '🐉', name: 'Drakon', desc: 'Древний дракон, знающий тысячи историй' },
@@ -602,103 +623,194 @@
     { emoji: '🎮', name: 'Pixel', last: 'Го катку вечером?', time: 'вчера' }
   ];
 
-  // ===== Render helpers =====
+  // ==================== Рендер ====================
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
   function renderCards(containerId, items) {
     const el = document.getElementById(containerId);
+    if (!el) return;
     el.innerHTML = items.map(c => `
       <div class="card">
         <div class="card-avatar">${c.emoji}</div>
-        <div class="card-name">${c.name}</div>
-        <div class="card-desc">${c.desc}</div>
+        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-desc">${esc(c.desc)}</div>
       </div>
     `).join('');
   }
 
   function renderChats() {
     const el = document.getElementById('chatsList');
+    if (!el) return;
     el.innerHTML = chats.map(c => `
       <div class="chat-item">
         <div class="chat-avatar">${c.emoji}</div>
         <div class="chat-info">
-          <div class="chat-name">${c.name}</div>
-          <div class="chat-last">${c.last}</div>
+          <div class="chat-name">${esc(c.name)}</div>
+          <div class="chat-last">${esc(c.last)}</div>
         </div>
       </div>
     `).join('');
   }
 
-  // ===== Tabs =====
+  function renderUser() {
+    const avatarEl   = document.getElementById('userAvatar');
+    const nameEl     = document.getElementById('userName');
+    const usernameEl = document.getElementById('userUsername');
+    if (!avatarEl || !nameEl || !usernameEl) return;
+
+    const u = state.user || state.demoUser;
+    const fullName = [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Пользователь';
+    const initial  = (u.first_name || fullName || '?').trim().charAt(0).toUpperCase() || '?';
+
+    nameEl.textContent = fullName;
+
+    if (u.username) {
+      usernameEl.textContent = '@' + u.username;
+    } else if (u.id) {
+      usernameEl.textContent = 'ID: ' + u.id;
+    } else {
+      usernameEl.textContent = state.isTelegram ? '' : 'демо-режим';
+    }
+
+    // Аватарка
+    if (u.photo_url) {
+      avatarEl.innerHTML = '';
+      const img = new Image();
+      img.alt = fullName;
+      img.referrerPolicy = 'no-referrer';
+      img.crossOrigin = 'anonymous';
+      img.onload  = () => { avatarEl.innerHTML = ''; avatarEl.appendChild(img); };
+      img.onerror = () => { avatarEl.textContent = initial; };
+      img.src = u.photo_url;
+    } else {
+      avatarEl.textContent = initial;
+    }
+  }
+
+  function updateThemeLabel() {
+    const el = document.getElementById('themeLabel');
+    if (!el) return;
+    const scheme = state.tg?.colorScheme
+      || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    el.textContent = scheme === 'dark' ? 'Dark' : 'Light';
+  }
+
+  function refreshIcons() {
+    if (window.lucide?.createIcons) {
+      try { lucide.createIcons(); } catch (e) { console.warn('lucide error', e); }
+    }
+  }
+
+  // ==================== Табы ====================
+
   function switchTab(tabName) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
     document.getElementById('panel-' + tabName)?.classList.add('active');
     document.querySelector(`.nav-item[data-tab="${tabName}"]`)?.classList.add('active');
-
-    document.querySelector('.content').scrollTop = 0;
-
-    if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    document.querySelector('.content')?.scrollTo({ top: 0, behavior: 'smooth' });
+    state.tg?.HapticFeedback?.selectionChanged?.();
+    refreshIcons();
   }
 
-  document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-  });
+  // ==================== Инициализация ====================
 
-  // ===== Create character =====
-  document.getElementById('createBtn').addEventListener('click', () => {
-    const name = document.getElementById('charName').value.trim();
-    const desc = document.getElementById('charDesc').value.trim();
-    const greet = document.getElementById('charGreet').value.trim();
+  async function init() {
+    // 1) Рендерим контент сразу (не ждём Telegram)
+    renderCards('popularGrid', popularChars);
+    renderCards('newGrid', newChars);
+    renderChats();
 
-    if (!name) {
-      if (tg?.showAlert) tg.showAlert('Введите имя персонажа');
-      else alert('Введите имя персонажа');
-      return;
+    // 2) Ждём Telegram SDK
+    const tg = await waitForTelegram(2500);
+    state.tg = tg;
+    state.isTelegram = !!tg;
+
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand?.();
+        tg.setHeaderColor?.('secondary_bg_color');
+        tg.setBackgroundColor?.('bg_color');
+        tg.enableClosingConfirmation?.();
+
+        tg.onEvent?.('themeChanged', () => {
+          updateThemeLabel();
+          refreshIcons();
+        });
+
+        tg.onEvent?.('activated', () => {
+          renderUser();
+        });
+      } catch (e) { console.warn('tg init warn', e); }
     }
 
-    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-    if (tg?.showPopup) {
-      tg.showPopup({
-        title: 'Персонаж создан!',
-        message: `${name} готов к общению`,
-        buttons: [{ type: 'ok' }]
-      });
-    } else {
-      alert('Персонаж создан: ' + name);
-    }
+    // 3) Получаем пользователя
+    state.user = getTelegramUser(tg) || state.demoUser;
 
-    document.getElementById('charName').value = '';
-    document.getElementById('charDesc').value = '';
-    document.getElementById('charGreet').value = '';
-  });
+    // 4) Рендерим данные юзера
+    renderUser();
+    updateThemeLabel();
 
-  // ===== Search button =====
-  document.getElementById('searchBtn').addEventListener('click', () => {
-    if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-  });
+    // 5) Иконки — ПОСЛЕ всего рендера
+    refreshIcons();
 
-  // ===== Theme label =====
-  function updateThemeLabel() {
-    const scheme = tg?.colorScheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.getElementById('themeLabel').textContent = scheme === 'dark' ? 'Dark' : 'Light';
-  }
-
-  if (tg) {
-    tg.onEvent?.('themeChanged', () => {
-      updateThemeLabel();
-      document.documentElement.style.cssText = ''; // пересчёт CSS var от Telegram
+    // 6) Навигация
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
+
+    // 7) Создание персонажа
+    document.getElementById('createBtn')?.addEventListener('click', () => {
+      const name  = document.getElementById('charName').value.trim();
+      const desc  = document.getElementById('charDesc').value.trim();
+      const greet = document.getElementById('charGreet').value.trim();
+
+      if (!name) {
+        state.tg?.HapticFeedback?.notificationOccurred?.('error');
+        if (state.tg?.showAlert) state.tg.showAlert('Введите имя персонажа');
+        else alert('Введите имя персонажа');
+        return;
+      }
+
+      state.tg?.HapticFeedback?.notificationOccurred?.('success');
+
+      const msg = `${name} готов к общению`;
+      if (state.tg?.showPopup) {
+        state.tg.showPopup({
+          title: 'Персонаж создан!',
+          message: msg,
+          buttons: [{ type: 'ok' }]
+        });
+      } else {
+        alert('Персонаж создан: ' + name);
+      }
+
+      document.getElementById('charName').value  = '';
+      document.getElementById('charDesc').value  = '';
+      document.getElementById('charGreet').value = '';
+    });
+
+    // 8) Кнопка поиска
+    document.getElementById('searchBtn')?.addEventListener('click', () => {
+      state.tg?.HapticFeedback?.impactOccurred?.('light');
+    });
+
+    // Отладка
+    console.log('[Seily] Telegram:', state.isTelegram, 'user:', state.user);
   }
 
-  // ===== Инициализация =====
-  loadUser();
-  renderCards('popularGrid', popularChars);
-  renderCards('newGrid', newChars);
-  renderChats();
-  updateThemeLabel();
-
-  // Рендер иконок
-  lucide.createIcons();
+  // Запуск
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 </script>
 
 </body>
