@@ -15,71 +15,51 @@
     --border: rgba(128,128,128,0.18);
   }
 
-  * {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    margin: 0;
-    padding: 0;
-  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
   html, body {
     height: 100%;
     overflow: hidden;
     background: var(--bg-color);
+    color: var(--text-color);
   }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-    color: var(--text-color);
     -webkit-font-smoothing: antialiased;
     display: flex;
     flex-direction: column;
     height: 100vh;
     height: 100dvh;
     padding-top: env(safe-area-inset-top);
+    opacity: 0;
+    transition: opacity .15s ease;
   }
+  body.ready { opacity: 1; }
 
   body.modal-open { overflow: hidden; }
 
-  /* ===== Header ===== */
+  /* Header */
   .app-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px 10px;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 10px; flex-shrink: 0;
   }
-
   .app-logo {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+    font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-
   .header-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--secondary-bg);
-    border: none;
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform .15s ease;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--secondary-bg); border: none; color: var(--text-color);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform .15s ease;
   }
   .header-btn:active { transform: scale(0.92); }
 
-  /* ===== Content ===== */
+  /* Content */
   .content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 1; overflow-y: auto; overflow-x: hidden;
     padding: 0 16px 100px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -90,37 +70,22 @@
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
-  /* ===== Empty state ===== */
+  /* Empty */
   .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    padding: 80px 20px;
-    color: var(--hint-color);
-    text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 80px 20px; color: var(--hint-color); text-align: center;
   }
   .empty-state svg { opacity: 0.5; }
   .empty-state p { font-size: 15px; font-weight: 600; }
-  .empty-state small {
-    font-size: 13px;
-    opacity: 0.7;
-    max-width: 260px;
-    line-height: 1.4;
-  }
+  .empty-state small { font-size: 13px; opacity: 0.7; max-width: 260px; line-height: 1.4; }
 
-  /* ===== Create tab ===== */
+  /* Create tab */
   .create-intro { padding: 40px 0 20px; text-align: center; }
   .create-intro-icon {
-    width: 72px; height: 72px;
-    border-radius: 22px;
+    width: 72px; height: 72px; border-radius: 22px;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; color: #fff;
   }
   .create-intro h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
   .create-intro p { font-size: 14px; color: var(--hint-color); line-height: 1.4; }
@@ -128,158 +93,105 @@
   .btn-primary {
     width: 100%;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #fff;
-    border: none;
-    border-radius: 14px;
-    padding: 15px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    color: #fff; border: none; border-radius: 14px; padding: 15px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
     font-family: inherit;
     transition: transform .12s ease, opacity .12s ease;
   }
   .btn-primary:active { transform: scale(0.97); opacity: 0.9; }
 
-  /* ===== Account ===== */
-  .account-top {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 0 20px;
-  }
-
+  /* Account */
+  .account-top { display: flex; flex-direction: column; align-items: center; padding: 24px 0 20px; }
   .account-avatar {
-    width: 108px;
-    height: 108px;
-    border-radius: 50%;
+    width: 108px; height: 108px; border-radius: 50%;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 42px;
-    font-weight: 800;
-    color: #fff;
-    overflow: hidden;
-    border: 3px solid var(--bg-color);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 42px; font-weight: 800; color: #fff;
+    overflow: hidden; border: 3px solid var(--bg-color);
     box-shadow: 0 0 0 3px var(--accent);
-    margin-bottom: 14px;
-    position: relative;
+    margin-bottom: 14px; position: relative;
   }
   .account-avatar img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   }
-
   .account-name { font-size: 20px; font-weight: 800; }
   .account-username { font-size: 14px; color: var(--hint-color); margin-top: 3px; }
-
   .account-hint {
-    font-size: 12px;
-    color: var(--hint-color);
-    text-align: center;
-    margin-top: 8px;
-    max-width: 280px;
-    line-height: 1.4;
-    opacity: 0.8;
+    font-size: 12px; color: var(--hint-color); text-align: center;
+    margin-top: 10px; max-width: 300px; line-height: 1.45; opacity: 0.85;
   }
 
   .account-list {
-    background: var(--secondary-bg);
-    border-radius: 18px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    margin-top: 20px;
+    background: var(--secondary-bg); border-radius: 18px;
+    overflow: hidden; border: 1px solid var(--border); margin-top: 20px;
   }
-
   .account-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 15px 16px;
-    cursor: pointer;
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 16px; cursor: pointer;
     border-bottom: 1px solid var(--border);
     transition: background .15s ease;
   }
   .account-row:last-child { border-bottom: none; }
   .account-row:active { background: rgba(128,128,128,0.12); }
-
   .account-row-icon {
-    width: 34px; height: 34px;
-    border-radius: 10px;
+    width: 34px; height: 34px; border-radius: 10px;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; flex-shrink: 0;
   }
-
   .account-row-label { flex: 1; font-size: 15px; font-weight: 500; }
   .account-row-value { font-size: 13px; color: var(--hint-color); margin-right: 6px; }
 
-  /* ===== Bottom nav ===== */
+  /* Debug block */
+  .debug-block {
+    margin-top: 20px; padding: 14px 16px;
+    background: var(--secondary-bg); border-radius: 14px;
+    border: 1px solid var(--border);
+    font-size: 12px; color: var(--hint-color);
+    line-height: 1.6; font-family: ui-monospace, Menlo, monospace;
+    word-break: break-all;
+  }
+  .debug-block b { color: var(--text-color); font-weight: 600; }
+  .debug-block .ok { color: #4ade80; }
+  .debug-block .fail { color: #f87171; }
+
+  /* Bottom nav */
   .bottom-nav {
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: space-around; align-items: center;
     background: var(--secondary-bg);
     border-top: 1px solid var(--border);
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
     z-index: 100;
   }
-
   .nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 6px 4px;
-    background: none;
-    border: none;
-    color: var(--hint-color);
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 6px 4px; background: none; border: none; color: var(--hint-color);
+    font-size: 11px; font-weight: 600; cursor: pointer;
     transition: color .15s ease, transform .15s ease;
     font-family: inherit;
   }
   .nav-item:active { transform: scale(0.94); }
   .nav-item.active { color: var(--accent); }
 
-  /* ===== Modal ===== */
+  /* Modal */
   .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .25s ease;
-    z-index: 200;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s ease; z-index: 200;
     will-change: opacity;
   }
   .modal-overlay.open { opacity: 1; pointer-events: auto; }
 
   .sheet {
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
+    position: fixed; left: 0; right: 0; bottom: 0;
     background: var(--secondary-bg);
     border-radius: 24px 24px 0 0;
     padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
     transform: translate3d(0, 100%, 0);
     transition: transform .32s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 201;
-    max-height: 92vh;
-    overflow-y: auto;
+    z-index: 201; max-height: 92vh; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 -10px 40px rgba(0,0,0,0.35);
     scrollbar-width: none;
@@ -290,115 +202,63 @@
   .sheet.dragging { transition: none; }
 
   .sheet-handle {
-    width: 44px;
-    height: 5px;
-    background: var(--hint-color);
-    opacity: 0.45;
-    border-radius: 3px;
-    margin: 0 auto 18px;
-    cursor: grab;
-    touch-action: none;
-    position: relative;
+    width: 44px; height: 5px; background: var(--hint-color);
+    opacity: 0.45; border-radius: 3px; margin: 0 auto 18px;
+    cursor: grab; touch-action: none; position: relative;
     transition: opacity .2s ease;
   }
   .sheet-handle:active { opacity: 0.85; cursor: grabbing; }
   .sheet-handle::before {
-    content: '';
-    position: absolute;
+    content: ''; position: absolute;
     top: -18px; left: -60px; right: -60px; bottom: -18px;
   }
 
   .sheet-title { font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 22px; }
 
-  /* ===== Form ===== */
   .form-group { margin-bottom: 16px; }
-
   .form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--hint-color);
-    margin-bottom: 8px;
-    padding-left: 4px;
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--hint-color); margin-bottom: 8px; padding-left: 4px;
   }
-
   .form-input, .form-textarea {
-    width: 100%;
-    background: var(--bg-color);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 16px;
-    font-size: 16px;
-    color: var(--text-color);
-    font-family: inherit;
-    outline: none;
+    width: 100%; background: var(--bg-color);
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 16px; font-size: 16px; color: var(--text-color);
+    font-family: inherit; outline: none;
     transition: border-color .15s ease;
-    -webkit-appearance: none;
-    appearance: none;
+    -webkit-appearance: none; appearance: none;
   }
   .form-input:focus, .form-textarea:focus { border-color: var(--accent); }
   .form-textarea { min-height: 90px; resize: none; line-height: 1.5; }
 
-  /* ===== Photo upload ===== */
   .photo-row { display: flex; justify-content: center; margin-bottom: 20px; }
-
   .photo-upload {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: var(--bg-color);
-    border: 2px dashed var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    cursor: pointer;
-    color: var(--hint-color);
-    font-size: 11px;
-    font-weight: 600;
-    overflow: hidden;
-    position: relative;
-    text-align: center;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: var(--bg-color); border: 2px dashed var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; cursor: pointer; color: var(--hint-color);
+    font-size: 11px; font-weight: 600; overflow: hidden;
+    position: relative; text-align: center;
     transition: border-color .15s ease, background .15s ease;
   }
   .photo-upload:active { border-color: var(--accent); background: rgba(124,92,255,0.06); }
   .photo-upload.has-image { border-style: solid; border-color: var(--accent); }
   .photo-upload > img {
-    position: absolute;
-    inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   }
   .photo-upload .overlay-edit {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    opacity: 0;
-    transition: opacity .2s ease;
-    z-index: 2;
+    position: absolute; inset: 0; background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; opacity: 0; transition: opacity .2s ease; z-index: 2;
   }
   .photo-upload.has-image .overlay-edit { opacity: 1; }
 
-  /* ===== Modal actions ===== */
   .sheet-actions { display: flex; gap: 10px; margin-top: 22px; }
-
   .btn-ghost {
-    flex: 1;
-    background: rgba(128,128,128,0.14);
-    color: var(--text-color);
-    border: none;
-    border-radius: 14px;
-    padding: 15px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    transition: transform .12s ease;
+    flex: 1; background: rgba(128,128,128,0.14); color: var(--text-color);
+    border: none; border-radius: 14px; padding: 15px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: transform .12s ease;
   }
   .btn-ghost:active { transform: scale(0.97); }
   .sheet-actions .btn-primary { flex: 2; }
@@ -473,6 +333,9 @@
         <div data-icon="chevron-right" data-size="18" style="color:var(--hint-color)"></div>
       </div>
     </div>
+
+    <!-- Диагностика: показывает, что реально видит браузер -->
+    <div class="debug-block" id="debugBlock"></div>
   </section>
 
 </main>
@@ -544,7 +407,7 @@
 
 <script>
 /* =========================================================
-   1. ICON SYSTEM (inline SVG — быстро, без CDN)
+   ICONS (inline, без внешних CDN)
    ========================================================= */
 const ICONS = {
   home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
@@ -555,7 +418,7 @@ const ICONS = {
   search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
   'chevron-right': '<path d="m9 18 6-6-6-6"/>',
-  settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   sparkles: '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>',
@@ -574,29 +437,45 @@ function renderIcons(root) {
     el.removeAttribute('data-icon');
   });
 }
-renderIcons();
 
 /* =========================================================
-   2. STATE
+   STATE
    ========================================================= */
 const state = {
   tg: null,
   user: null,
-  isTelegram: false
+  isTelegram: false,
+  sdkLoaded: false
 };
 
 /* =========================================================
-   3. TELEGRAM WEBAPP
+   TELEGRAM — синхронная проверка + фоновое ожидание
    ========================================================= */
-function initTelegram() {
-  const tg = window.Telegram?.WebApp;
-  if (!tg || !tg.initData && !tg.initDataUnsafe?.user) {
-    // Открыто вне Telegram WebApp окружения
-    state.isTelegram = false;
-    state.user = null;
-    return;
+function readUser(tg) {
+  if (!tg) return null;
+  const unsafe = tg.initDataUnsafe?.user;
+  if (unsafe && unsafe.id) return unsafe;
+  const raw = tg.initData;
+  if (raw) {
+    try {
+      const params = new URLSearchParams(raw);
+      const u = params.get('user');
+      if (u) {
+        const parsed = JSON.parse(u);
+        if (parsed && parsed.id) return parsed;
+      }
+    } catch {}
   }
+  return null;
+}
+
+// Пытаемся получить SDK синхронно. Если нет — ждём в фоне.
+function trySyncTelegram() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg) return false;
+
   state.tg = tg;
+  state.sdkLoaded = true;
   state.isTelegram = true;
 
   try {
@@ -606,34 +485,33 @@ function initTelegram() {
     tg.setBackgroundColor?.('bg_color');
     tg.enableClosingConfirmation?.();
     tg.onEvent?.('themeChanged', updateThemeLabel);
-    tg.onEvent?.('activated', renderUser);
-  } catch (e) { console.warn(e); }
+    tg.onEvent?.('activated', () => {
+      state.user = readUser(tg);
+      renderUser();
+      renderDebug();
+    });
+  } catch (e) { console.warn('tg init', e); }
 
   state.user = readUser(tg);
+  return true;
 }
 
-function readUser(tg) {
-  // initDataUnsafe.user — стандартный путь
-  const unsafe = tg?.initDataUnsafe?.user;
-  if (unsafe && unsafe.id) return unsafe;
-
-  // fallback — парсим initData
-  const raw = tg?.initData;
-  if (raw) {
-    try {
-      const params = new URLSearchParams(raw);
-      const userJson = params.get('user');
-      if (userJson) {
-        const u = JSON.parse(userJson);
-        if (u && u.id) return u;
-      }
-    } catch (e) { console.warn(e); }
-  }
-  return null;
+// Ждём SDK максимум N мс, потом прекращаем (не блокируем UI)
+function watchTelegramSdk(timeout = 6000) {
+  return new Promise(resolve => {
+    if (trySyncTelegram()) return resolve(true);
+    const start = Date.now();
+    const tick = () => {
+      if (trySyncTelegram()) return resolve(true);
+      if (Date.now() - start >= timeout) return resolve(false);
+      setTimeout(tick, 120);
+    };
+    setTimeout(tick, 120);
+  });
 }
 
 /* =========================================================
-   4. RENDER USER
+   USER RENDER
    ========================================================= */
 function renderUser() {
   const avatarEl   = document.getElementById('userAvatar');
@@ -651,14 +529,16 @@ function renderUser() {
     hintEl.textContent = '';
 
     if (u.photo_url) {
-      avatarEl.innerHTML = '';
+      const existing = avatarEl.querySelector('img');
+      if (existing) {
+        if (existing.src === u.photo_url) return; // не перезагружаем одно и то же
+        existing.remove();
+      }
+      avatarEl.textContent = '';
       const img = new Image();
       img.referrerPolicy = 'no-referrer';
       img.decoding = 'async';
-      img.onload = () => {
-        avatarEl.innerHTML = '';
-        avatarEl.appendChild(img);
-      };
+      img.onload = () => { avatarEl.textContent = ''; avatarEl.appendChild(img); };
       img.onerror = () => { avatarEl.textContent = initial; };
       img.src = u.photo_url;
     } else {
@@ -672,16 +552,47 @@ function renderUser() {
   if (state.isTelegram) {
     nameEl.textContent = 'Профиль недоступен';
     usernameEl.textContent = '';
-    hintEl.textContent = 'Откройте приложение через кнопку Web App в боте (t.me/ваш_бот/app), чтобы увидеть данные';
-  } else {
-    nameEl.textContent = 'Не в Telegram';
+    hintEl.textContent = 'Telegram не передал данные. Откройте приложение через кнопку Web App в боте (t.me/ваш_бот/имя_приложения), а не по прямой ссылке.';
+  } else if (state.sdkLoaded) {
+    nameEl.textContent = 'Вне Telegram';
     usernameEl.textContent = '';
-    hintEl.textContent = 'Данные профиля отображаются только внутри Telegram WebApp';
+    hintEl.textContent = 'Данные профиля отображаются только внутри Telegram.';
+  } else {
+    nameEl.textContent = 'Ожидание Telegram…';
+    usernameEl.textContent = '';
+    hintEl.textContent = 'Если открыли вне Telegram — данные профиля недоступны.';
   }
 }
 
 /* =========================================================
-   5. THEME
+   DEBUG INFO — показывает реальные значения
+   ========================================================= */
+function renderDebug() {
+  const el = document.getElementById('debugBlock');
+  if (!el) return;
+
+  const hasSdk = !!window.Telegram?.WebApp;
+  const hasInitData = !!(state.tg?.initData);
+  const initLen = state.tg?.initData ? state.tg.initData.length : 0;
+  const hasUser = !!state.user;
+  const platform = state.tg?.platform || '—';
+  const version = state.tg?.version || '—';
+
+  const mark = (ok) => ok ? '<span class="ok">✓</span>' : '<span class="fail">✗</span>';
+
+  el.innerHTML = `
+    <div><b>Диагностика</b></div>
+    <div>${mark(hasSdk)} window.Telegram.WebApp</div>
+    <div>${mark(hasInitData)} initData <span style="opacity:.6">(${initLen} симв.)</span></div>
+    <div>${mark(hasUser)} user</div>
+    <div>platform: ${platform}</div>
+    <div>tg version: ${version}</div>
+    <div>UA: ${navigator.userAgent.slice(0, 60)}…</div>
+  `;
+}
+
+/* =========================================================
+   THEME
    ========================================================= */
 function updateThemeLabel() {
   const el = document.getElementById('themeLabel');
@@ -692,7 +603,7 @@ function updateThemeLabel() {
 }
 
 /* =========================================================
-   6. TABS
+   TABS
    ========================================================= */
 function switchTab(tabName) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -700,15 +611,12 @@ function switchTab(tabName) {
   document.getElementById('panel-' + tabName)?.classList.add('active');
   document.querySelector(`.nav-item[data-tab="${tabName}"]`)?.classList.add('active');
   document.querySelector('.content')?.scrollTo({ top: 0, behavior: 'auto' });
+  if (tabName === 'account') renderDebug();
   state.tg?.HapticFeedback?.selectionChanged?.();
 }
 
-document.querySelectorAll('.nav-item').forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
-
 /* =========================================================
-   7. BOTTOM SHEET
+   BOTTOM SHEET
    ========================================================= */
 const sheet = document.getElementById('createSheet');
 const overlay = document.getElementById('modalOverlay');
@@ -729,15 +637,7 @@ function closeSheet() {
   state.tg?.HapticFeedback?.impactOccurred?.('light');
 }
 
-overlay.addEventListener('click', closeSheet);
-document.getElementById('cancelBtn').addEventListener('click', closeSheet);
-document.getElementById('openCreateBtn').addEventListener('click', openSheet);
-
-// Drag-to-close
-let dragStartY = 0;
-let dragDelta = 0;
-let isDragging = false;
-let isDraggingSheet = false;
+let dragStartY = 0, dragDelta = 0, isDragging = false, isDraggingSheet = false;
 
 function dragStart(y, fromSheet) {
   isDragging = true;
@@ -758,65 +658,34 @@ function dragEnd() {
   if (!isDragging) return;
   isDragging = false;
   sheet.classList.remove('dragging');
-  if (dragDelta > 110) {
-    closeSheet();
-  } else {
-    sheet.style.transform = '';
-  }
+  if (dragDelta > 110) closeSheet();
+  else sheet.style.transform = '';
   dragDelta = 0;
 }
 
-// Handle — всегда тянет
-handle.addEventListener('touchstart', e => dragStart(e.touches[0].clientY, true), { passive: true });
-handle.addEventListener('mousedown', e => { e.preventDefault(); dragStart(e.clientY, true); });
-
-// Sheet — тянет вниз только когда скролл в самом верху
-sheet.addEventListener('touchstart', e => {
-  if (sheet.scrollTop <= 0) dragStart(e.touches[0].clientY, false);
-}, { passive: true });
-
-document.addEventListener('touchmove', e => {
-  if (!isDragging) return;
-  const y = e.touches[0].clientY;
-  if (isDraggingSheet || dragDelta > 0 || (y - dragStartY) > 0) {
-    dragMove(y);
-    if (e.cancelable) e.preventDefault();
-  }
-}, { passive: false });
-
-document.addEventListener('touchend', dragEnd);
-document.addEventListener('touchcancel', dragEnd);
-
-document.addEventListener('mousemove', e => { if (isDragging) dragMove(e.clientY); });
-document.addEventListener('mouseup', dragEnd);
-
 /* =========================================================
-   8. PHOTO UPLOAD
+   PHOTO UPLOAD
    ========================================================= */
 const photoInput = document.getElementById('charPhoto');
 const photoUpload = document.getElementById('photoUpload');
 let selectedPhotoData = null;
 
-function bindPhotoInput() {
-  photoInput.addEventListener('change', () => {
-    const file = photoInput.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      selectedPhotoData = reader.result;
-      // Пересобираем содержимое (без потери input)
-      const existingImg = photoUpload.querySelector('img');
-      if (existingImg) existingImg.remove();
-      const img = document.createElement('img');
-      img.src = selectedPhotoData;
-      img.alt = '';
-      photoUpload.insertBefore(img, photoUpload.firstChild);
-      photoUpload.classList.add('has-image');
-    };
-    reader.readAsDataURL(file);
-  });
-}
-bindPhotoInput();
+photoInput.addEventListener('change', () => {
+  const file = photoInput.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    selectedPhotoData = reader.result;
+    const existingImg = photoUpload.querySelector('img');
+    if (existingImg) existingImg.remove();
+    const img = document.createElement('img');
+    img.src = selectedPhotoData;
+    img.alt = '';
+    photoUpload.insertBefore(img, photoUpload.firstChild);
+    photoUpload.classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+});
 
 function resetPhoto() {
   selectedPhotoData = null;
@@ -827,83 +696,110 @@ function resetPhoto() {
 }
 
 /* =========================================================
-   9. CREATE CHARACTER
-   ========================================================= */
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const name   = document.getElementById('charName').value.trim();
-  const desc   = document.getElementById('charDesc').value.trim();
-  const greet  = document.getElementById('charGreet').value.trim();
-  const traits = document.getElementById('charTraits').value.trim();
-
-  if (!name) {
-    state.tg?.HapticFeedback?.notificationOccurred?.('error');
-    if (state.tg?.showAlert) state.tg.showAlert('Введите имя персонажа');
-    else alert('Введите имя персонажа');
-    return;
-  }
-
-  const character = {
-    name, description: desc, greeting: greet, traits,
-    photo: selectedPhotoData,
-    createdAt: Date.now()
-  };
-
-  console.log('[Seily] Character:', character);
-  state.tg?.HapticFeedback?.notificationOccurred?.('success');
-
-  if (state.tg?.showPopup) {
-    state.tg.showPopup({
-      title: 'Персонаж создан!',
-      message: `${name} готов к общению`,
-      buttons: [{ type: 'ok' }]
-    });
-  } else {
-    alert('Персонаж создан: ' + name);
-  }
-
-  // Reset
-  document.getElementById('charName').value = '';
-  document.getElementById('charDesc').value = '';
-  document.getElementById('charGreet').value = '';
-  document.getElementById('charTraits').value = '';
-  resetPhoto();
-
-  closeSheet();
-});
-
-/* =========================================================
-   10. SEARCH
-   ========================================================= */
-document.getElementById('searchBtn').addEventListener('click', () => {
-  state.tg?.HapticFeedback?.impactOccurred?.('light');
-});
-
-/* =========================================================
-   11. BOOT
+   BOOT
    ========================================================= */
 function boot() {
-  initTelegram();
+  renderIcons();
+
+  // 1) Мгновенно показываем UI (не ждём Telegram)
+  document.body.classList.add('ready');
+
+  // 2) Синхронная попытка получить Telegram
+  trySyncTelegram();
+
+  // 3) Первый рендер
   renderUser();
   updateThemeLabel();
+  renderDebug();
 
-  // Резервная перерисовка — вдруг initData пришёл позже
-  if (state.isTelegram && !state.user) {
-    let tries = 0;
-    const t = setInterval(() => {
-      tries++;
-      const u = readUser(state.tg);
-      if (u) {
-        state.user = u;
-        renderUser();
-        clearInterval(t);
-      }
-      if (tries >= 15) clearInterval(t);
-    }, 200);
-  }
+  // 4) Подписки UI
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
 
-  console.log('[Seily] boot', {
-    isTelegram: state.isTelegram,
-    user: state.user
+  document.getElementById('searchBtn').addEventListener('click', () => {
+    state.tg?.HapticFeedback?.impactOccurred?.('light');
+  });
+
+  document.getElementById('openCreateBtn').addEventListener('click', openSheet);
+  overlay.addEventListener('click', closeSheet);
+  document.getElementById('cancelBtn').addEventListener('click', closeSheet);
+
+  handle.addEventListener('touchstart', e => dragStart(e.touches[0].clientY, true), { passive: true });
+  handle.addEventListener('mousedown', e => { e.preventDefault(); dragStart(e.clientY, true); });
+
+  sheet.addEventListener('touchstart', e => {
+    if (sheet.scrollTop <= 0) dragStart(e.touches[0].clientY, false);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const y = e.touches[0].clientY;
+    if (isDraggingSheet || dragDelta > 0 || (y - dragStartY) > 0) {
+      dragMove(y);
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', dragEnd);
+  document.addEventListener('touchcancel', dragEnd);
+  document.addEventListener('mousemove', e => { if (isDragging) dragMove(e.clientY); });
+  document.addEventListener('mouseup', dragEnd);
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const name   = document.getElementById('charName').value.trim();
+    const desc   = document.getElementById('charDesc').value.trim();
+    const greet  = document.getElementById('charGreet').value.trim();
+    const traits = document.getElementById('charTraits').value.trim();
+
+    if (!name) {
+      state.tg?.HapticFeedback?.notificationOccurred?.('error');
+      if (state.tg?.showAlert) state.tg.showAlert('Введите имя персонажа');
+      else alert('Введите имя персонажа');
+      return;
+    }
+
+    const character = { name, description: desc, greeting: greet, traits, photo: selectedPhotoData, createdAt: Date.now() };
+    console.log('[Seily] Character:', character);
+    state.tg?.HapticFeedback?.notificationOccurred?.('success');
+
+    if (state.tg?.showPopup) {
+      state.tg.showPopup({
+        title: 'Персонаж создан!',
+        message: `${name} готов к общению`,
+        buttons: [{ type: 'ok' }]
+      });
+    } else {
+      alert('Персонаж создан: ' + name);
+    }
+
+    document.getElementById('charName').value = '';
+    document.getElementById('charDesc').value = '';
+    document.getElementById('charGreet').value = '';
+    document.getElementById('charTraits').value = '';
+    resetPhoto();
+    closeSheet();
+  });
+
+  // 5) Фоновое ожидание SDK — если он подгрузился позже
+  watchTelegramSdk(6000).then(ok => {
+    if (ok && state.isTelegram && !state.user) {
+      // ещё раз пробуем получить юзера — initData иногда приходит с задержкой
+      let tries = 0;
+      const t = setInterval(() => {
+        tries++;
+        const u = readUser(state.tg);
+        if (u) {
+          state.user = u;
+          renderUser();
+          renderDebug();
+          clearInterval(t);
+        }
+        if (tries >= 15) clearInterval(t);
+      }, 200);
+    }
+    renderUser();
+    renderDebug();
   });
 }
 
@@ -912,9 +808,11 @@ if (document.readyState === 'loading') {
 } else {
   boot();
 }
+
+console.log('[Seily] script loaded');
 </script>
 
-<!-- Telegram SDK грузим ПОСЛЕ нашего скрипта и БЕЗ блокировки рендера -->
+<!-- Telegram SDK — грузим последним, не блокируя рендер -->
 <script src="https://telegram.org/js/telegram-web-app.js" async></script>
 
 </body>
