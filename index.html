@@ -36,7 +36,6 @@
     transition: opacity .15s ease;
   }
   body.ready { opacity: 1; }
-
   body.modal-open { overflow: hidden; }
 
   /* Header */
@@ -334,7 +333,6 @@
       </div>
     </div>
 
-    <!-- Диагностика: показывает, что реально видит браузер -->
     <div class="debug-block" id="debugBlock"></div>
   </section>
 
@@ -407,7 +405,7 @@
 
 <script>
 /* =========================================================
-   ICONS (inline, без внешних CDN)
+   ICONS
    ========================================================= */
 const ICONS = {
   home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
@@ -441,15 +439,41 @@ function renderIcons(root) {
 /* =========================================================
    STATE
    ========================================================= */
+const CACHE_KEY = 'seily_user_cache_v1';
+
 const state = {
   tg: null,
   user: null,
   isTelegram: false,
-  sdkLoaded: false
+  sdkLoaded: false,
+  sdkSource: '—'
 };
 
 /* =========================================================
-   TELEGRAM — синхронная проверка + фоновое ожидание
+   USER CACHE (localStorage)
+   ========================================================= */
+function loadCachedUser() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Кэш живёт 7 дней
+    if (parsed.ts && (Date.now() - parsed.ts) > 7 * 24 * 3600 * 1000) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return parsed.user || null;
+  } catch { return null; }
+}
+
+function saveCachedUser(user) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ user, ts: Date.now() }));
+  } catch {}
+}
+
+/* =========================================================
+   TELEGRAM
    ========================================================= */
 function readUser(tg) {
   if (!tg) return null;
@@ -469,49 +493,112 @@ function readUser(tg) {
   return null;
 }
 
-// Пытаемся получить SDK синхронно. Если нет — ждём в фоне.
 function trySyncTelegram() {
   const tg = window.Telegram?.WebApp;
   if (!tg) return false;
 
   state.tg = tg;
   state.sdkLoaded = true;
-  state.isTelegram = true;
 
-  try {
-    tg.ready();
-    tg.expand?.();
-    tg.setHeaderColor?.('secondary_bg_color');
-    tg.setBackgroundColor?.('bg_color');
-    tg.enableClosingConfirmation?.();
-    tg.onEvent?.('themeChanged', updateThemeLabel);
-    tg.onEvent?.('activated', () => {
-      state.user = readUser(tg);
-      renderUser();
-      renderDebug();
-    });
-  } catch (e) { console.warn('tg init', e); }
+  // Проверяем: реально ли мы в WebApp окружении?
+  // initData непустой или initDataUnsafe.user есть — значит настоящий WebApp
+  const realUser = readUser(tg);
+  const hasInitData = !!(tg.initData && tg.initData.length > 0);
 
-  state.user = readUser(tg);
+  state.isTelegram = hasInitData || !!realUser;
+
+  if (state.isTelegram) {
+    try {
+      tg.ready();
+      tg.expand?.();
+      tg.setHeaderColor?.('secondary_bg_color');
+      tg.setBackgroundColor?.('bg_color');
+      tg.enableClosingConfirmation?.();
+      tg.onEvent?.('themeChanged', updateThemeLabel);
+      tg.onEvent?.('activated', () => {
+        const u = readUser(tg);
+        if (u) {
+          state.user = u;
+          saveCachedUser(u);
+          renderUser();
+          renderDebug();
+        }
+      });
+    } catch (e) { console.warn('tg init', e); }
+  }
+
+  if (realUser) {
+    state.user = realUser;
+    saveCachedUser(realUser);
+  }
+
   return true;
 }
 
-// Ждём SDK максимум N мс, потом прекращаем (не блокируем UI)
-function watchTelegramSdk(timeout = 6000) {
+/* =========================================================
+   SDK LOADER с резервными CDN
+   ========================================================= */
+function loadTelegramSdk() {
+  const sources = [
+    { url: 'https://telegram.org/js/telegram-web-app.js', name: 'telegram.org' },
+    { url: 'https://cdn.jsdelivr.net/npm/@telegram-apps/sdk@latest/dist/telegram-web-app.js', name: 'jsdelivr' },
+    { url: 'https://unpkg.com/@telegram-apps/sdk@latest/dist/telegram-web-app.js', name: 'unpkg' }
+  ];
+
   return new Promise(resolve => {
-    if (trySyncTelegram()) return resolve(true);
-    const start = Date.now();
-    const tick = () => {
-      if (trySyncTelegram()) return resolve(true);
-      if (Date.now() - start >= timeout) return resolve(false);
-      setTimeout(tick, 120);
-    };
-    setTimeout(tick, 120);
+    // Если SDK уже есть (например, загружен через <script async> в HTML) — ок
+    if (window.Telegram?.WebApp) {
+      state.sdkSource = 'inline';
+      return resolve(true);
+    }
+
+    let index = 0;
+
+    function tryNext() {
+      if (index >= sources.length) return resolve(false);
+      const src = sources[index++];
+
+      const script = document.createElement('script');
+      script.src = src.url;
+      script.async = true;
+      let done = false;
+
+      const timeout = setTimeout(() => {
+        if (done) return;
+        done = true;
+        script.remove();
+        tryNext();
+      }, 4000);
+
+      script.onload = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timeout);
+        if (window.Telegram?.WebApp) {
+          state.sdkSource = src.name;
+          resolve(true);
+        } else {
+          tryNext();
+        }
+      };
+
+      script.onerror = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timeout);
+        script.remove();
+        tryNext();
+      };
+
+      document.head.appendChild(script);
+    }
+
+    tryNext();
   });
 }
 
 /* =========================================================
-   USER RENDER
+   RENDER USER
    ========================================================= */
 function renderUser() {
   const avatarEl   = document.getElementById('userAvatar');
@@ -526,14 +613,12 @@ function renderUser() {
 
     nameEl.textContent = fullName;
     usernameEl.textContent = u.username ? '@' + u.username : (u.id ? 'ID: ' + u.id : '');
-    hintEl.textContent = '';
+    hintEl.textContent = state.isTelegram ? '' : 'Данные из кэша (открыто вне Telegram)';
 
     if (u.photo_url) {
       const existing = avatarEl.querySelector('img');
-      if (existing) {
-        if (existing.src === u.photo_url) return; // не перезагружаем одно и то же
-        existing.remove();
-      }
+      if (existing && existing.src === u.photo_url) return;
+      if (existing) existing.remove();
       avatarEl.textContent = '';
       const img = new Image();
       img.referrerPolicy = 'no-referrer';
@@ -547,25 +632,25 @@ function renderUser() {
     return;
   }
 
-  // Нет пользователя
   avatarEl.textContent = '?';
+
   if (state.isTelegram) {
     nameEl.textContent = 'Профиль недоступен';
     usernameEl.textContent = '';
-    hintEl.textContent = 'Telegram не передал данные. Откройте приложение через кнопку Web App в боте (t.me/ваш_бот/имя_приложения), а не по прямой ссылке.';
+    hintEl.textContent = 'Telegram не передал данные. Перезапустите Web App.';
   } else if (state.sdkLoaded) {
     nameEl.textContent = 'Вне Telegram';
     usernameEl.textContent = '';
-    hintEl.textContent = 'Данные профиля отображаются только внутри Telegram.';
+    hintEl.textContent = 'Откройте приложение через кнопку в боте: t.me/ваш_бот/имя_приложения';
   } else {
-    nameEl.textContent = 'Ожидание Telegram…';
+    nameEl.textContent = 'Вне Telegram';
     usernameEl.textContent = '';
-    hintEl.textContent = 'Если открыли вне Telegram — данные профиля недоступны.';
+    hintEl.textContent = 'Откройте приложение через кнопку в боте: t.me/ваш_бот/имя_приложения';
   }
 }
 
 /* =========================================================
-   DEBUG INFO — показывает реальные значения
+   DEBUG
    ========================================================= */
 function renderDebug() {
   const el = document.getElementById('debugBlock');
@@ -582,9 +667,10 @@ function renderDebug() {
 
   el.innerHTML = `
     <div><b>Диагностика</b></div>
-    <div>${mark(hasSdk)} window.Telegram.WebApp</div>
+    <div>${mark(hasSdk)} window.Telegram.WebApp <span style="opacity:.6">(источник: ${state.sdkSource})</span></div>
     <div>${mark(hasInitData)} initData <span style="opacity:.6">(${initLen} симв.)</span></div>
     <div>${mark(hasUser)} user</div>
+    <div>${mark(state.isTelegram)} в WebApp окружении</div>
     <div>platform: ${platform}</div>
     <div>tg version: ${version}</div>
     <div>UA: ${navigator.userAgent.slice(0, 60)}…</div>
@@ -698,21 +784,32 @@ function resetPhoto() {
 /* =========================================================
    BOOT
    ========================================================= */
-function boot() {
+async function boot() {
   renderIcons();
-
-  // 1) Мгновенно показываем UI (не ждём Telegram)
   document.body.classList.add('ready');
 
-  // 2) Синхронная попытка получить Telegram
+  // 1) Сразу показываем кэш (если есть) — чтобы UI не был пустым
+  const cached = loadCachedUser();
+  if (cached) {
+    state.user = cached;
+    renderUser();
+  }
+
+  // 2) Пробуем синхронно — если SDK уже здесь
   trySyncTelegram();
 
-  // 3) Первый рендер
+  // 3) Грузим SDK с резервных CDN (если ещё нет)
+  if (!state.sdkLoaded) {
+    const ok = await loadTelegramSdk();
+    if (ok) trySyncTelegram();
+  }
+
+  // 4) Рендер
   renderUser();
   updateThemeLabel();
   renderDebug();
 
-  // 4) Подписки UI
+  // 5) UI подписки
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
@@ -781,26 +878,24 @@ function boot() {
     closeSheet();
   });
 
-  // 5) Фоновое ожидание SDK — если он подгрузился позже
-  watchTelegramSdk(6000).then(ok => {
-    if (ok && state.isTelegram && !state.user) {
-      // ещё раз пробуем получить юзера — initData иногда приходит с задержкой
-      let tries = 0;
-      const t = setInterval(() => {
-        tries++;
-        const u = readUser(state.tg);
-        if (u) {
-          state.user = u;
-          renderUser();
-          renderDebug();
-          clearInterval(t);
-        }
-        if (tries >= 15) clearInterval(t);
-      }, 200);
-    }
-    renderUser();
-    renderDebug();
-  });
+  // 6) Фоновое ожидание initData (если он приходит с задержкой)
+  if (state.isTelegram && !state.user) {
+    let tries = 0;
+    const t = setInterval(() => {
+      tries++;
+      const u = readUser(state.tg);
+      if (u) {
+        state.user = u;
+        saveCachedUser(u);
+        renderUser();
+        renderDebug();
+        clearInterval(t);
+      }
+      if (tries >= 20) clearInterval(t);
+    }, 250);
+  }
+
+  console.log('[Seily] boot', { sdk: state.sdkLoaded, source: state.sdkSource, isTelegram: state.isTelegram, user: state.user });
 }
 
 if (document.readyState === 'loading') {
@@ -808,12 +903,7 @@ if (document.readyState === 'loading') {
 } else {
   boot();
 }
-
-console.log('[Seily] script loaded');
 </script>
-
-<!-- Telegram SDK — грузим последним, не блокируя рендер -->
-<script src="https://telegram.org/js/telegram-web-app.js" async></script>
 
 </body>
 </html>
